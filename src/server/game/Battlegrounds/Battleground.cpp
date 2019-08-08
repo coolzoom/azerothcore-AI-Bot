@@ -1041,6 +1041,30 @@ void Battleground::EndBattleground(TeamId winnerTeamId)
         player->UpdateAchievementCriteria(ACHIEVEMENT_CRITERIA_TYPE_COMPLETE_BATTLEGROUND, player->GetMapId());
     }
 
+    if (isBattleground() && winnerTeamId != TEAM_NEUTRAL)
+    {
+        std::string Message = "|cff2ecc71[BattleGround]|r ";
+        
+        if (winnerTeamId == TEAM_ALLIANCE)
+            Message += "|cffffffffThe Alliance Wins The|r |cff2ecc71";
+        else
+            Message += "|cffffffffThe Horde Wins The|r |cff2ecc71";
+
+        Message += GetName();
+
+        for (auto Session : sWorld->GetAllSessions())
+        {
+            if (Player* player = Session.second->GetPlayer())
+            {
+                WorldPacket Packet(SMSG_SERVER_MESSAGE, Message.size() + 1);
+                Packet << uint32(3);
+                Packet << Message;
+
+                player->GetSession()->SendPacket(&Packet);
+            }
+        }
+    }
+
     if (isArena() && isRated() && winnerArenaTeam && loserArenaTeam && winnerArenaTeam != loserArenaTeam)
     {
         // save the stat changes

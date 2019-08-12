@@ -801,6 +801,20 @@ void Battleground::EndBattleground(TeamId winnerTeamId)
         {
             if (winnerTeamId != TEAM_NEUTRAL)
             {
+                std::string Message = "|cff2ecc71[Arena]|r " + winnerArenaTeam->GetName() + " |cffffffffHas won the match against|r " + loserArenaTeam->GetName();
+
+                for (auto Session : sWorld->GetAllSessions())
+                {
+                    if (Player* player = Session.second->GetPlayer())
+                    {
+                        WorldPacket Packet(SMSG_SERVER_MESSAGE, Message.size() + 1);
+                        Packet << uint32(3);
+                        Packet << Message;
+
+                        player->GetSession()->SendPacket(&Packet);
+                    }
+                }
+
                 loserTeamRating = loserArenaTeam->GetRating();
                 loserMatchmakerRating = GetArenaMatchmakerRating(GetOtherTeamId(winnerTeamId));
                 winnerTeamRating = winnerArenaTeam->GetRating();

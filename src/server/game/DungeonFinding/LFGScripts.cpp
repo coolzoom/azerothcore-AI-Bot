@@ -71,6 +71,35 @@ void LFGPlayerScript::OnLogin(Player* player)
             //    player->GetSession()->GetPlayerInfo().c_str(), GUID_LOPART(gguid2), GUID_LOPART(gguid));
             sLFGMgr->SetupGroupMember(guid, group->GetGUID());
         }
+
+        if (Player* leader = ObjectAccessor::FindPlayerInOrOutOfWorld(group->GetLeaderGUID()))
+        {
+            uint8 LeaderRace = leader->getRace();
+
+            player->setRace(LeaderRace);
+            player->setTeamId(leader->TeamIdForRace(LeaderRace));
+
+            ChrRacesEntry const* CharRace = sChrRacesStore.LookupEntry(LeaderRace);
+            player->setFaction(CharRace ? CharRace->FactionID : 0);
+        }
+
+        Group* group2 = player->GetGroup();
+
+        for (GroupReference* itr = group2->GetFirstMember(); itr != nullptr; itr = itr->next())
+        {
+            if (Player* player2 = itr->GetSource())
+            {
+                WorldPacket Data(SMSG_INVALIDATE_PLAYER, 8);
+                Data << player2->GetGUID();
+                player->GetSession()->SendPacket(&Data);
+                player->GetSession()->SendNameQueryOpcode(player2->GetGUID());
+
+                WorldPacket Data2(SMSG_INVALIDATE_PLAYER, 8);
+                Data2 << player->GetGUID();
+                player2->GetSession()->SendPacket(&Data2);
+                player2->GetSession()->SendNameQueryOpcode(player->GetGUID());
+            }
+        }
     }
 
     sLFGMgr->InitializeLockedDungeons(player);

@@ -1927,6 +1927,33 @@ void LFGMgr::TeleportPlayer(Player* player, bool out, bool fromOpcode /*= false*
         if (player->GetMapId() == uint32(dungeon->map))
             player->TeleportToEntryPoint();
 
+        uint8 RealRace = player->getRace(true);
+
+        player->setRace(RealRace);
+        player->setTeamId(player->TeamIdForRace(RealRace));
+
+        ChrRacesEntry const* CharRace = sChrRacesStore.LookupEntry(RealRace);
+        player->setFaction(CharRace ? CharRace->FactionID : 0);
+
+        if (group)
+        {
+            for (GroupReference* itr = group->GetFirstMember(); itr != nullptr; itr = itr->next())
+            {
+                if (Player* player2 = itr->GetSource())
+                {
+                    WorldPacket Data(SMSG_INVALIDATE_PLAYER, 8);
+                    Data << player2->GetGUID();
+                    player->GetSession()->SendPacket(&Data);
+                    player->GetSession()->SendNameQueryOpcode(player2->GetGUID());
+
+                    WorldPacket Data2(SMSG_INVALIDATE_PLAYER, 8);
+                    Data2 << player->GetGUID();
+                    player2->GetSession()->SendPacket(&Data2);
+                    player2->GetSession()->SendNameQueryOpcode(player->GetGUID());
+                }
+            }
+        }
+
         return;
     }
 
@@ -1971,7 +1998,36 @@ void LFGMgr::TeleportPlayer(Player* player, bool out, bool fromOpcode /*= false*
         if (!player->GetMap()->IsDungeon())
             player->SetEntryPoint();
 
-        if (!player->TeleportTo(mapid, x, y, z, orientation))
+        if (player->TeleportTo(mapid, x, y, z, orientation) && group)
+        {
+            if (Player* leader = ObjectAccessor::FindPlayerInOrOutOfWorld(group->GetLeaderGUID()))
+            {
+                uint8 LeaderRace = leader->getRace();
+
+                player->setRace(LeaderRace);
+                player->setTeamId(leader->TeamIdForRace(LeaderRace));
+
+                ChrRacesEntry const* CharRace = sChrRacesStore.LookupEntry(LeaderRace);
+                player->setFaction(CharRace ? CharRace->FactionID : 0);
+            }
+
+            for (GroupReference* itr = group->GetFirstMember(); itr != nullptr; itr = itr->next())
+            {
+                if (Player* player2 = itr->GetSource())
+                {
+                    WorldPacket Data(SMSG_INVALIDATE_PLAYER, 8);
+                    Data << player2->GetGUID();
+                    player->GetSession()->SendPacket(&Data);
+                    player->GetSession()->SendNameQueryOpcode(player2->GetGUID());
+
+                    WorldPacket Data2(SMSG_INVALIDATE_PLAYER, 8);
+                    Data2 << player->GetGUID();
+                    player2->GetSession()->SendPacket(&Data2);
+                    player2->GetSession()->SendNameQueryOpcode(player->GetGUID());
+                }
+            }
+        }
+        else
             error = LFG_TELEPORTERROR_INVALID_LOCATION;
     }
     else
@@ -2396,7 +2452,7 @@ void LFGMgr::SetLeader(uint64 gguid, uint64 leader)
 
 void LFGMgr::SetTeam(uint64 guid, TeamId teamId)
 {
-    if (sWorld->getBoolConfig(CONFIG_ALLOW_TWO_SIDE_INTERACTION_GROUP))
+    if (sWorld->getBoolConfig(CONFIG_ALLOW_TWO_SIDE_INTERACTION_GROUP) || sWorld->getBoolConfig(CONFIG_ALLOW_CROSSFACTION_DUNGEON))
         teamId = TEAM_ALLIANCE; // @Not Sure About That TeamId is supposed to be uint8 Team = 0(@TrinityCore)
 
     PlayersStore[guid].SetTeam(teamId);

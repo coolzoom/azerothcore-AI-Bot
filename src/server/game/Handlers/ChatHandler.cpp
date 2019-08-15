@@ -352,6 +352,9 @@ void WorldSession::HandleMessagechatOpcode(WorldPacket & recvData)
                 return;
             }
 
+            if (lang != LANG_ADDON && sender->GetMap()->IsDungeon())
+                lang = LANG_UNIVERSAL;
+
             if (type == CHAT_MSG_SAY)
                 sender->Say(msg, lang);
             else if (type == CHAT_MSG_EMOTE)
@@ -405,6 +408,9 @@ void WorldSession::HandleMessagechatOpcode(WorldPacket & recvData)
         case CHAT_MSG_PARTY:
         case CHAT_MSG_PARTY_LEADER:
         {
+            if (lang != LANG_ADDON && sender->GetMap()->IsDungeon())
+                lang = LANG_UNIVERSAL;
+
             // if player is in battleground, he cannot say to battleground members by /p
             Group* group = GetPlayer()->GetOriginalGroup();
             if (!group)
@@ -460,6 +466,9 @@ void WorldSession::HandleMessagechatOpcode(WorldPacket & recvData)
         } break;
         case CHAT_MSG_RAID:
         {
+            if (lang != LANG_ADDON && sender->GetMap()->IsDungeon())
+                lang = LANG_UNIVERSAL;
+
             // if player is in battleground, he cannot say to battleground members by /ra
             Group* group = GetPlayer()->GetOriginalGroup();
             if (!group)
@@ -480,6 +489,9 @@ void WorldSession::HandleMessagechatOpcode(WorldPacket & recvData)
         } break;
         case CHAT_MSG_RAID_LEADER:
         {
+            if (lang != LANG_ADDON && sender->GetMap()->IsDungeon())
+                lang = LANG_UNIVERSAL;
+
             // if player is in battleground, he cannot say to battleground members by /ra
             Group* group = GetPlayer()->GetOriginalGroup();
             if (!group)
@@ -500,6 +512,9 @@ void WorldSession::HandleMessagechatOpcode(WorldPacket & recvData)
         } break;
         case CHAT_MSG_RAID_WARNING:
         {
+            if (lang != LANG_ADDON && sender->GetMap()->IsDungeon())
+                lang = LANG_UNIVERSAL;
+
             Group* group = GetPlayer()->GetGroup();
             if (!group || !group->isRaidGroup() || !(group->IsLeader(GetPlayer()->GetGUID()) || group->IsAssistant(GetPlayer()->GetGUID())) || group->isBGGroup())
                 return;

@@ -72,32 +72,35 @@ void LFGPlayerScript::OnLogin(Player* player)
             sLFGMgr->SetupGroupMember(guid, group->GetGUID());
         }
 
-        if (Player* leader = ObjectAccessor::FindPlayerInOrOutOfWorld(group->GetLeaderGUID()))
+        if (sWorld->getBoolConfig(CONFIG_ALLOW_CROSSFACTION_DUNGEON))
         {
-            uint8 LeaderRace = leader->getRace();
-
-            player->setRace(LeaderRace);
-            player->setTeamId(leader->TeamIdForRace(LeaderRace));
-
-            ChrRacesEntry const* CharRace = sChrRacesStore.LookupEntry(LeaderRace);
-            player->setFaction(CharRace ? CharRace->FactionID : 0);
-        }
-
-        Group* group2 = player->GetGroup();
-
-        for (GroupReference* itr = group2->GetFirstMember(); itr != nullptr; itr = itr->next())
-        {
-            if (Player* player2 = itr->GetSource())
+            if (Player* leader = ObjectAccessor::FindPlayerInOrOutOfWorld(group->GetLeaderGUID()))
             {
-                WorldPacket Data(SMSG_INVALIDATE_PLAYER, 8);
-                Data << player2->GetGUID();
-                player->GetSession()->SendPacket(&Data);
-                player->GetSession()->SendNameQueryOpcode(player2->GetGUID());
+                uint8 LeaderRace = leader->getRace();
 
-                WorldPacket Data2(SMSG_INVALIDATE_PLAYER, 8);
-                Data2 << player->GetGUID();
-                player2->GetSession()->SendPacket(&Data2);
-                player2->GetSession()->SendNameQueryOpcode(player->GetGUID());
+                player->setRace(LeaderRace);
+                player->setTeamId(leader->TeamIdForRace(LeaderRace));
+
+                ChrRacesEntry const* CharRace = sChrRacesStore.LookupEntry(LeaderRace);
+                player->setFaction(CharRace ? CharRace->FactionID : 0);
+            }
+
+            Group* group2 = player->GetGroup();
+
+            for (GroupReference* itr = group2->GetFirstMember(); itr != nullptr; itr = itr->next())
+            {
+                if (Player* player2 = itr->GetSource())
+                {
+                    WorldPacket Data(SMSG_INVALIDATE_PLAYER, 8);
+                    Data << player2->GetGUID();
+                    player->GetSession()->SendPacket(&Data);
+                    player->GetSession()->SendNameQueryOpcode(player2->GetGUID());
+
+                    WorldPacket Data2(SMSG_INVALIDATE_PLAYER, 8);
+                    Data2 << player->GetGUID();
+                    player2->GetSession()->SendPacket(&Data2);
+                    player2->GetSession()->SendNameQueryOpcode(player->GetGUID());
+                }
             }
         }
     }

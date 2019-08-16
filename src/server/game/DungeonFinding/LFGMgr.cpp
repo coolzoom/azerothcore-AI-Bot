@@ -2001,8 +2001,6 @@ void LFGMgr::TeleportPlayer(Player* player, bool out, bool fromOpcode /*= false*
 
         if (player->TeleportTo(mapid, x, y, z, orientation))
         {
-            player->OldFactionID = player->getFaction();
-
             if (group && sWorld->getBoolConfig(CONFIG_ALLOW_CROSSFACTION_DUNGEON))
             {
                 if (Player* leader = ObjectAccessor::FindPlayerInOrOutOfWorld(group->GetLeaderGUID()))

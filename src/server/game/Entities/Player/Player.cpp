@@ -1218,6 +1218,7 @@ bool Player::Create(uint32 guidlow, CharacterCreateInfo* createInfo)
 
     CheckAllAchievementCriteria();
 
+    OldFactionID = getFaction();
     return true;
 }
 
@@ -18409,6 +18410,8 @@ bool Player::LoadFromDB(uint32 guid, SQLQueryHolder *holder)
         if (!HasAuraState((AuraStateType)m_spellInfo->CasterAuraState))
             aura->HandleAllEffects(itr->second, AURA_EFFECT_HANDLE_REAL, false);
     }
+
+    OldFactionID = getFaction();
     return true;
 }
 

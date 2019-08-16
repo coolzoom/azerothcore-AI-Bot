@@ -76,13 +76,16 @@ void LFGPlayerScript::OnLogin(Player* player)
         {
             if (Player* leader = ObjectAccessor::FindPlayerInOrOutOfWorld(group->GetLeaderGUID()))
             {
-                uint8 LeaderRace = leader->getRace();
+                if (player->getFaction() != leader->getFaction())
+                {
+                    uint8 LeaderRace = leader->getRace();
 
-                player->setRace(LeaderRace);
-                player->setTeamId(leader->TeamIdForRace(LeaderRace));
+                    player->setRace(LeaderRace);
+                    player->setTeamId(leader->TeamIdForRace(LeaderRace));
 
-                ChrRacesEntry const* CharRace = sChrRacesStore.LookupEntry(LeaderRace);
-                player->setFaction(CharRace ? CharRace->FactionID : 0);
+                    ChrRacesEntry const* CharRace = sChrRacesStore.LookupEntry(LeaderRace);
+                    player->setFaction(CharRace ? CharRace->FactionID : 0);
+                }
             }
 
             Group* group2 = player->GetGroup();

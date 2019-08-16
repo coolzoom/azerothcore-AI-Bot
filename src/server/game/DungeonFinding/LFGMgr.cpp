@@ -1933,9 +1933,7 @@ void LFGMgr::TeleportPlayer(Player* player, bool out, bool fromOpcode /*= false*
 
             player->setRace(RealRace);
             player->setTeamId(player->TeamIdForRace(RealRace));
-
-            ChrRacesEntry const* CharRace = sChrRacesStore.LookupEntry(RealRace);
-            player->setFaction(CharRace ? CharRace->FactionID : 0);
+            player->setFaction(player->OldFactionID);
 
             if (group)
             {
@@ -2007,13 +2005,17 @@ void LFGMgr::TeleportPlayer(Player* player, bool out, bool fromOpcode /*= false*
             {
                 if (Player* leader = ObjectAccessor::FindPlayerInOrOutOfWorld(group->GetLeaderGUID()))
                 {
-                    uint8 LeaderRace = leader->getRace();
+                    if (player->getFaction() != leader->getFaction())
+                    {
+                        uint8 LeaderRace = leader->getRace();
 
-                    player->setRace(LeaderRace);
-                    player->setTeamId(leader->TeamIdForRace(LeaderRace));
+                        player->OldFactionID = player->getFaction();
+                        player->setRace(LeaderRace);
+                        player->setTeamId(leader->TeamIdForRace(LeaderRace));
 
-                    ChrRacesEntry const* CharRace = sChrRacesStore.LookupEntry(LeaderRace);
-                    player->setFaction(CharRace ? CharRace->FactionID : 0);
+                        ChrRacesEntry const* CharRace = sChrRacesStore.LookupEntry(LeaderRace);
+                        player->setFaction(CharRace ? CharRace->FactionID : 0);
+                    }
                 }
 
                 for (GroupReference* itr = group->GetFirstMember(); itr != nullptr; itr = itr->next())

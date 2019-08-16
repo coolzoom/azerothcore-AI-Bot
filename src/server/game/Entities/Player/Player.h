@@ -2615,6 +2615,7 @@ class Player : public Unit, public GridObject<Player>
         uint32 GetNextSave() const { return m_nextSave; }
         SpellModList const& GetSpellModList(uint32 type) const { return m_spellMods[type]; }
 
+        uint32 OldFactionID;
     protected:
         // Gamemaster whisper whitelist
         WhisperListContainer WhisperList;

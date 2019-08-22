@@ -2626,7 +2626,7 @@ void World::UpdateSessions(uint32 diff)
         WorldSession* pSession = itr->second;
         if (!pSession->GetPlayer() || pSession->GetOfflineTime()+60 < currTime || pSession->IsKicked())
         {
-            if (sWorld->getBoolConfig(CONFIG_PREVENT_ALT_F4_DISCONNECT) > 0 && pSession->GetPlayer() && pSession->GetPlayer()->IsInSanctuary() && pSession->GetOfflineTime() + sWorld->getBoolConfig(CONFIG_PREVENT_ALT_F4_DISCONNECT) > currTime && !pSession->IsKicked())
+            if (sWorld->getIntConfig(CONFIG_PREVENT_ALT_F4_DISCONNECT) > 0 && pSession->GetPlayer() && pSession->GetPlayer()->IsInSanctuary() && pSession->GetOfflineTime() + sWorld->getIntConfig(CONFIG_PREVENT_ALT_F4_DISCONNECT) > currTime && !pSession->IsKicked())
                 continue;
 
             m_offlineSessions.erase(itr);

@@ -1323,7 +1323,7 @@ void World::LoadConfigSettings(bool reload)
     // Player can join LFG anywhere
     m_bool_configs[CONFIG_LFG_LOCATION_ALL] = sConfigMgr->GetBoolDefault("LFG.Location.All", false);
 
-    m_bool_configs[CONFIG_PREVENT_ALT_F4_DISCONNECT] = sConfigMgr->GetBoolDefault("PreventALTF4Disconnect", false);
+    m_int_configs[CONFIG_PREVENT_ALT_F4_DISCONNECT] = sConfigMgr->GetIntDefault("PreventALTF4Disconnect", 0);
     m_bool_configs[CONFIG_PREVENT_AFK_DISCONNECT] = sConfigMgr->GetBoolDefault("PreventAFKDisconnect", false);
 
     // call ScriptMgr if we're reloading the configuration

@@ -1323,6 +1323,9 @@ void World::LoadConfigSettings(bool reload)
     // Player can join LFG anywhere
     m_bool_configs[CONFIG_LFG_LOCATION_ALL] = sConfigMgr->GetBoolDefault("LFG.Location.All", false);
 
+    m_bool_configs[CONFIG_PREVENT_ALT_F4_DISCONNECT] = sConfigMgr->GetBoolDefault("PreventALTF4Disconnect", false);
+    m_bool_configs[CONFIG_PREVENT_AFK_DISCONNECT] = sConfigMgr->GetBoolDefault("PreventAFKDisconnect", false);
+
     // call ScriptMgr if we're reloading the configuration
     sScriptMgr->OnAfterConfigLoad(reload);
 }
@@ -2623,6 +2626,9 @@ void World::UpdateSessions(uint32 diff)
         WorldSession* pSession = itr->second;
         if (!pSession->GetPlayer() || pSession->GetOfflineTime()+60 < currTime || pSession->IsKicked())
         {
+            if (sWorld->getBoolConfig(CONFIG_PREVENT_ALT_F4_DISCONNECT) > 0 && pSession->GetPlayer() && pSession->GetPlayer()->IsInSanctuary() && pSession->GetOfflineTime() + sWorld->getBoolConfig(CONFIG_PREVENT_ALT_F4_DISCONNECT) > currTime && !pSession->IsKicked())
+                continue;
+
             m_offlineSessions.erase(itr);
             if (m_sessions.find(pSession->GetAccountId()) != m_sessions.end())
                 pSession->SetShouldSetOfflineInDB(false); // pussywizard: don't set offline in db because new session for that acc is already created

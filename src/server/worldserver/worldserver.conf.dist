@@ -1163,6 +1163,22 @@ RecruitAFriend.MaxDifference = 4
 InstantLogout = 1
 
 #
+#    PreventALTF4Disconnect 
+#        Description: Prevent ALT + F4 players from being logged out
+#        Default:     0    - (Disabled)
+#                     3600 - (Enabled) Time in seconds 3600 means 1 hour
+
+PreventALTF4Disconnect = 0
+
+#
+#    PreventAFKDisconnect 
+#        Description: Prevent AFK players from being logged out
+#        Default:     0  - (Disabled)
+#                     1  - (Enabled)
+
+PreventAFKDisconnect = 0
+
+#
 #    DisableWaterBreath
 #        Description: Required security level for water breathing.
 #        Default:     4  - (Disabled)

@@ -29,6 +29,7 @@ class LFGPlayerScript : public PlayerScript
         void OnLogin(Player* player);
         void OnBindToInstance(Player* player, Difficulty difficulty, uint32 mapId, bool permanent);
         void OnMapChanged(Player* player);
+        void OnBeforeSendChatMessage(Player* player, uint32& type, uint32& lang, std::string& msg);
 };
 
 class LFGGroupScript : public GroupScript

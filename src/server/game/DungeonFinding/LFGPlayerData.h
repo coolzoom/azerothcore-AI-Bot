@@ -50,6 +50,9 @@ class LfgPlayerData
         std::string const& GetComment() const;
         LfgDungeonSet const& GetSelectedDungeons() const;
 
+        void SetCrossFactionState(bool Value) { CrossFactionState = Value; }
+        bool GetCrossFactionState() const { return CrossFactionState; }
+
     private:
         // General
         LfgState m_State;                                  ///< State if group in LFG
@@ -65,6 +68,8 @@ class LfgPlayerData
         uint8 m_Roles;                                     ///< Roles the player selected when joined LFG
         std::string m_Comment;                             ///< Player comment used when joined LFG
         LfgDungeonSet m_SelectedDungeons;                  ///< Selected Dungeons when joined LFG
+
+        bool CrossFactionState;
 };
 
 } // namespace lfg

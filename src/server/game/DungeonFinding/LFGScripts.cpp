@@ -85,9 +85,39 @@ void LFGPlayerScript::OnBindToInstance(Player* player, Difficulty difficulty, ui
         sLFGMgr->InitializeLockedDungeons(player);
 }
 
+void LFGPlayerScript::OnBeforeSendChatMessage(Player* player, uint32& type, uint32& Lang, std::string& msg)
+{
+    if (!sWorld->getBoolConfig(CONFIG_ALLOW_CROSSFACTION_DUNGEON) || Lang == LANG_UNIVERSAL || Lang == LANG_ADDON || !player->GetMap()->IsDungeon())
+        return;
+
+    Lang = LANG_UNIVERSAL;
+}
+
 void LFGPlayerScript::OnMapChanged(Player* player)
 {
     Map const* map = player->GetMap();
+
+    if (sWorld->getBoolConfig(CONFIG_ALLOW_CROSSFACTION_DUNGEON))
+    {
+        if (player->isUsingLfg() && map->IsDungeon() && !sLFGMgr->GetCrossFactionState(player->GetGUID()))
+        {
+            player->setRace(RACE_HUMAN);
+
+            ChrRacesEntry const* CharRace = sChrRacesStore.LookupEntry(RACE_HUMAN);
+            player->setFaction(CharRace ? CharRace->FactionID : 0);
+
+            sLFGMgr->SetCrossFactionState(player->GetGUID(), true);
+        }
+        else if (sLFGMgr->GetCrossFactionState(player->GetGUID()))
+        {
+            player->setRace(player->getRace(true));
+
+            ChrRacesEntry const* CharRace = sChrRacesStore.LookupEntry(player->getRace(true));
+            player->setFaction(CharRace ? CharRace->FactionID : 0);
+
+            sLFGMgr->SetCrossFactionState(player->GetGUID(), false);
+        }
+    }
 
     if (sLFGMgr->inLfgDungeonMap(player->GetGUID(), map->GetId(), map->GetDifficulty()))
     {

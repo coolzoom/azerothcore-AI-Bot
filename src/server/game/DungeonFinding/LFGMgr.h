@@ -535,6 +535,9 @@ class LFGMgr
         /// Sends queue status to player
         static void SendLfgQueueStatus(uint64 guid, LfgQueueStatusData const& data);
 
+        void SetCrossFactionState(uint64 Guid, bool Value) { PlayersStore[Guid].SetCrossFactionState(Value); }
+        bool GetCrossFactionState(uint64 Guid) { return PlayersStore[Guid].GetCrossFactionState(); }
+
     private:
         TeamId GetTeam(uint64 guid);
         void RestoreState(uint64 guid, char const* debugMsg);

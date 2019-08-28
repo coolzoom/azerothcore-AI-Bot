@@ -2396,7 +2396,7 @@ void LFGMgr::SetLeader(uint64 gguid, uint64 leader)
 
 void LFGMgr::SetTeam(uint64 guid, TeamId teamId)
 {
-    if (sWorld->getBoolConfig(CONFIG_ALLOW_TWO_SIDE_INTERACTION_GROUP))
+    if (sWorld->getBoolConfig(CONFIG_ALLOW_TWO_SIDE_INTERACTION_GROUP) || sWorld->getBoolConfig(CONFIG_ALLOW_CROSSFACTION_DUNGEON))
         teamId = TEAM_ALLIANCE; // @Not Sure About That TeamId is supposed to be uint8 Team = 0(@TrinityCore)
 
     PlayersStore[guid].SetTeam(teamId);

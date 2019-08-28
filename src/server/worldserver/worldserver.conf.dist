@@ -1650,6 +1650,14 @@ AllowTwoSide.Interaction.Channel = 0
 AllowTwoSide.Interaction.Group = 0
 
 #
+#    AllowTwoSide.DungeonFinder
+#        Description: Allow both side joining dungeon between factions.
+#        Default:     0 - (Disabled)
+#                     1 - (Enabled)
+
+AllowTwoSide.DungeonFinder = 0
+
+#
 #    AllowTwoSide.Interaction.Guild
 #        Description: Allow guild joining between factions.
 #        Default:     0 - (Disabled)

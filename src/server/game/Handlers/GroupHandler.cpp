@@ -21,6 +21,9 @@
 #include "SpellAuras.h"
 #include "Vehicle.h"
 
+ // EJ robot
+#include "RobotAI.h"
+
 class Aura;
 
 /* differeces from off:
@@ -138,6 +141,18 @@ void WorldSession::HandleGroupInviteOpcode(WorldPacket& recvData)
             data << uint8(0);                                       // count
             data << uint32(0);                                      // unk
             player->GetSession()->SendPacket(&data);
+        }
+
+        // EJ robot group recheck
+        if (player->GetSession()->isRobot)
+        {
+            if (player->rai)
+            {
+                if (!player->IsInSameGroupWith(player->rai->masterPlayer))
+                {
+                    player->RemoveFromGroup();
+                }
+            }
         }
 
         return;

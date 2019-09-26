@@ -294,8 +294,11 @@ void WorldSession::HandleNpcTextQueryOpcode(WorldPacket & recvData)
         for (uint8 i = 0; i < MAX_GOSSIP_TEXT_OPTIONS; ++i)
         {
             data << float(0);
-            data << "Greetings $N";
-            data << "Greetings $N";
+            // EJ no greetings			
+            data << " ";
+            data << " ";
+            //data << "Greetings $N";
+            //data << "Greetings $N";
             data << uint32(0);
             data << uint32(0);
             data << uint32(0);
@@ -335,15 +338,45 @@ void WorldSession::HandleNpcTextQueryOpcode(WorldPacket & recvData)
 
             data << gossip->Options[i].Probability;
 
+            // EJ greetings replacement
+            std::string textContent = "";
             if (text0[i].empty())
-                data << text1[i];
+            {
+                textContent = text1[i];
+            }
             else
-                data << text0[i];
+            {
+                textContent = text0[i];
+            }
+            if (textContent == "Greetings, $n.")
+            {
+                textContent = " ";
+            }
+            data << textContent;
 
             if (text1[i].empty())
-                data << text0[i];
+            {
+                textContent = text0[i];
+            }
             else
-                data << text1[i];
+            {
+                textContent = text1[i];
+            }
+            if (textContent == "Greetings, $n.")
+            {
+                textContent = " ";
+            }
+            data << textContent;
+
+            //if (text0[i].empty())
+            //    data << text1[i];
+            //else
+            //    data << text0[i];
+
+            //if (text1[i].empty())
+            //    data << text0[i];
+            //else
+            //    data << text1[i];
 
             data << gossip->Options[i].Language;
 

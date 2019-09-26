@@ -83,6 +83,11 @@
 #include "LuaEngine.h"
 #endif
 
+// EJ robot
+#include "RobotManager.h"
+// EJ marketer
+#include "MarketerManager.h"
+
 ACE_Atomic_Op<ACE_Thread_Mutex, bool> World::m_stopEvent = false;
 uint8 World::m_ExitCode = SHUTDOWN_EXIT_CODE;
 uint32 World::m_worldLoopCounter = 0;
@@ -1964,6 +1969,12 @@ void World::SetInitialWorldSettings()
     sLog->outError("WORLD: World initialized in %u minutes %u seconds", (startupDuration / 60000), ((startupDuration % 60000) / 1000));
     sLog->outString();
 
+    // EJ marketer
+    sMarketerConfig->StartMarketerSystem();
+
+    // EJ robot
+    sRobotConfig->StartRobotSystem();
+
     // possibly enable db logging; avoid massive startup spam by doing it here.
     if (sConfigMgr->GetBoolDefault("EnableLogDB", false))
     {
@@ -2244,6 +2255,13 @@ void World::Update(uint32 diff)
 
     sScriptMgr->OnWorldUpdate(diff);
 
+    // EJ marketer
+    sMarketerManager->UpdateSeller(diff);
+    sMarketerManager->UpdateBuyer(diff);
+
+    // EJ robot
+    sRobotManager->UpdateRobots(diff);
+
     SavingSystemMgr::Update(diff);
 }
 
@@ -2485,6 +2503,9 @@ void World::ShutdownServ(uint32 time, uint32 options, uint8 exitcode)
     if (IsStopped())
         return;
 
+    // EJ robot
+    sRobotManager->LogoutRobots();
+
     m_ShutdownMask = options;
     m_ExitCode = exitcode;
 
@@ -2574,9 +2595,32 @@ void World::UpdateSessions(uint32 diff)
     while (addSessQueue.next(sess))
         AddSession_ (sess);
 
+    // EJ update active player levels
+    sRobotManager->activePlayerLevelSet.clear();
+
+    // EJ Debug
+    sRobotManager->activePlayerLevelSet.insert(33);
+
     ///- Then send an update signal to remaining ones
     for (SessionMap::iterator itr = m_sessions.begin(), next; itr != m_sessions.end(); itr = next)
     {
+        // EJ update active player levels
+        if (!itr->second->isRobot)
+        {
+            Player* targetPlayer = itr->second->GetPlayer();
+            if (targetPlayer)
+            {
+                uint32 targetLevel = targetPlayer->getLevel();
+                if (targetLevel > 7)
+                {
+                    if (sRobotManager->activePlayerLevelSet.find(targetLevel) == sRobotManager->activePlayerLevelSet.end())
+                    {
+                        sRobotManager->activePlayerLevelSet.insert(targetLevel);
+                    }
+                }
+            }
+        }
+
         next = itr;
         ++next;
 

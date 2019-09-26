@@ -1327,6 +1327,14 @@ void WorldSession::HandlePlayerLoginToCharInWorld(Player* pCurrChar)
         SendNotification(LANG_GM_ON);
 
     m_playerLoading = false;
+
+    // EJ robot
+    if (isRobot)
+    {
+        std::ostringstream loginBroadCastStream;
+        loginBroadCastStream << pCurrChar->GetName() << " logged in";
+        sWorld->SendServerMessage(ServerMessageType::SERVER_MSG_STRING, loginBroadCastStream.str().c_str());
+    }
 }
 
 void WorldSession::HandlePlayerLoginToCharOutOfWorld(Player*  /*pCurrChar*/)

@@ -44,6 +44,9 @@ class PlayerSocial;
 class SpellCastTargets;
 class UpdateMask;
 
+// EJ robot
+class RobotAI;
+
 typedef std::deque<Mail*> PlayerMails;
 
 #define PLAYER_MAX_SKILLS           127
@@ -1093,6 +1096,12 @@ private:
 
 class Player : public Unit, public GridObject<Player>
 {
+    // EJ robot ai 
+public:
+    RobotAI* rai;
+    // 0 dps, 1 tank, 2 healer
+    uint8 groupRole;
+
     friend class WorldSession;
     friend void Item::AddToUpdateQueueOf(Player* player);
     friend void Item::RemoveFromUpdateQueueOf(Player* player);

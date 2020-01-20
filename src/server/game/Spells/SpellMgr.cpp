@@ -3377,6 +3377,9 @@ void SpellMgr::LoadDbcDataCorrections()
         case 29809: // Desecration Arm - 36 instead of 37 - typo? :/
             spellInfo->EffectRadiusIndex[0] = 37;
             break;
+        case 42767: // Sic'em
+            spellInfo->EffectImplicitTargetA[0] = TARGET_UNIT_NEARBY_ENTRY;
+            break;
         // Master Shapeshifter: missing stance data for forms other than bear - bear version has correct data
         // To prevent aura staying on target after talent unlearned
         case 48420:
@@ -4340,6 +4343,10 @@ void SpellMgr::LoadDbcDataCorrections()
         case 50990: // Flame Breath (Catapult)
             spellInfo->EffectRadiusIndex[EFFECT_0] = 19; // 18yd
             break;
+        case 56103: // Jormungar Bite
+            spellInfo->EffectImplicitTargetA[EFFECT_0] = TARGET_UNIT_TARGET_ENEMY;
+            spellInfo->EffectImplicitTargetB[EFFECT_0] = 0;
+            break;
 
         /////////////////////////////////
         ///// Generic NPC Spells
@@ -4548,6 +4555,10 @@ void SpellMgr::LoadDbcDataCorrections()
         case 29125:
             spellInfo->EffectImplicitTargetB[0] = TARGET_UNIT_SRC_AREA_ENTRY;
             break;
+        // Jagged Knife
+        case 55550:
+            spellInfo->Attributes |= SPELL_ATTR0_REQ_AMMO;
+            break;
 
         //////////////////////////////////////////
         ////////// Gundrak
@@ -4555,6 +4566,12 @@ void SpellMgr::LoadDbcDataCorrections()
         // Moorabi - Transformation
         case 55098:
             spellInfo->InterruptFlags |= SPELL_INTERRUPT_FLAG_INTERRUPT;
+            break;
+        case 55521: // Poisoned Spear (Normal)
+        case 58967: // Poisoned Spear (Heroic)
+        case 55348: // Throw (Normal)
+        case 58966: // Throw (Heroic)
+            spellInfo->Attributes |= SPELL_ATTR0_REQ_AMMO;
             break;
 
         //////////////////////////////////////////
@@ -6326,7 +6343,11 @@ void SpellMgr::LoadDbcDataCorrections()
     properties->Type = SUMMON_TYPE_TOTEM;
     properties = const_cast<SummonPropertiesEntry*>(sSummonPropertiesStore.LookupEntry(647)); // 52893
     properties->Type = SUMMON_TYPE_TOTEM;
-
+    if ((properties = const_cast<SummonPropertiesEntry*>(sSummonPropertiesStore.LookupEntry(628)))) // Hungry Plaguehound
+    {
+        properties->Category = SUMMON_CATEGORY_PET;
+        properties->Type = SUMMON_TYPE_PET;
+    }
 
     // Correct Pet Size
     CreatureDisplayInfoEntry* displayEntry = const_cast<CreatureDisplayInfoEntry*>(sCreatureDisplayInfoStore.LookupEntry(17028)); // Kurken

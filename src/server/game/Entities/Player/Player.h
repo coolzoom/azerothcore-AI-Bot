@@ -44,6 +44,9 @@ class PlayerSocial;
 class SpellCastTargets;
 class UpdateMask;
 
+// EJ robot
+class RobotAI;
+
 typedef std::deque<Mail*> PlayerMails;
 
 #define PLAYER_MAX_SKILLS           127
@@ -909,6 +912,11 @@ enum PlayerCommandStates
     CHEAT_WATERWALK = 0x10
 };
 
+enum InstantFlightGossipAction
+{
+    GOSSIP_ACTION_TOGGLE_INSTANT_FLIGHT = 500
+};
+
 class PlayerTaxi
 {
     public:
@@ -1088,6 +1096,12 @@ private:
 
 class Player : public Unit, public GridObject<Player>
 {
+    // EJ robot ai 
+public:
+    RobotAI* rai;
+    // 0 dps, 1 tank, 2 healer
+    uint8 groupRole;
+
     friend class WorldSession;
     friend void Item::AddToUpdateQueueOf(Player* player);
     friend void Item::RemoveFromUpdateQueueOf(Player* player);
@@ -1394,6 +1408,8 @@ class Player : public Unit, public GridObject<Player>
         uint32 GetGossipTextId(uint32 menuId, WorldObject* source);
         uint32 GetGossipTextId(WorldObject* source);
         static uint32 GetDefaultGossipMenuForSource(WorldObject* source);
+
+        void ToggleInstantFlight();
 
         /*********************************************************/
         /***                    QUEST SYSTEM                   ***/
@@ -2961,6 +2977,8 @@ class Player : public Unit, public GridObject<Player>
         // duel health and mana reset attributes
         uint32 healthBeforeDuel;
         uint32 manaBeforeDuel;
+
+        bool m_isInstantFlightOn;
 };
 
 void AddItemsSetItem(Player* player, Item* item);

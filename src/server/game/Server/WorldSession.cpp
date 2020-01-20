@@ -39,6 +39,9 @@
 #include "LuaEngine.h"
 #endif
 
+// EJ robot
+#include "RobotAI.h"
+
 namespace {
 
 std::string const DefaultPlayerName = "<none>";
@@ -130,6 +133,9 @@ WorldSession::WorldSession(uint32 id, WorldSocket* sock, AccountTypes sec, uint8
     }
 
     InitializeQueryCallbackParameters();
+
+    // EJ robot
+    isRobot = false;
 }
 
 /// WorldSession destructor
@@ -162,6 +168,9 @@ WorldSession::~WorldSession()
 
     if (GetShouldSetOfflineInDB())
         LoginDatabase.PExecute("UPDATE account SET online = 0 WHERE id = %u;", GetAccountId());     // One-time query
+
+    // EJ robot
+    isRobot = false;
 }
 
 std::string const & WorldSession::GetPlayerName() const
@@ -189,6 +198,19 @@ uint32 WorldSession::GetGuidLow() const
 /// Send a packet to the client
 void WorldSession::SendPacket(WorldPacket const* packet)
 {
+    // EJ robot
+    if (isRobot)
+    {
+        if (_player)
+        {
+            if (_player->rai)
+            {
+                _player->rai->HandlePacket((*packet));
+            }
+        }
+        return;
+    }
+
     if (!m_Socket)
         return;
 
@@ -248,6 +270,27 @@ void WorldSession::QueuePacket(WorldPacket* new_packet)
 /// Update the WorldSession (triggered by World update)
 bool WorldSession::Update(uint32 diff, PacketFilter& updater)
 {
+    // EJ robot
+    if (isRobot)
+    {
+        if (_player)
+        {
+            if (_player->IsBeingTeleportedNear())
+            {
+                WorldPacket data(MSG_MOVE_TELEPORT_ACK, 10);
+                data.append(_player->GetPackGUID());
+                data << uint32(0) << uint32(0);
+                HandleMoveTeleportAck(data);
+            }
+            if (_player->IsBeingTeleportedFar())
+            {
+                HandleMoveWorldportAckOpcode();
+            }
+        }
+
+        return true;
+    }
+
     if (updater.ProcessLogout())
     {
         UpdateTimeOutTime(diff);
@@ -566,6 +609,12 @@ void WorldSession::LogoutPlayer(bool save)
         {
             _player->GetGroup()->SendUpdate();
             _player->GetGroup()->ResetMaxEnchantingLevel();
+			
+            Map::PlayerList const &playerList = _player->GetMap()->GetPlayers();
+
+            if (_player->GetMap()->IsDungeon() || _player->GetMap()->IsRaidOrHeroicDungeon())
+                if (playerList.isEmpty())
+                    _player->TeleportToEntryPoint();
         }
 
         //! Broadcast a logout message to the player's friends

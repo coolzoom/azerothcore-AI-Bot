@@ -155,11 +155,13 @@ class CharacterCreateInfo
     friend class WorldSession;
     friend class Player;
 
-    protected:
+    // EJ robot set to public 
+public:
         CharacterCreateInfo(std::string const& name, uint8 race, uint8 cclass, uint8 gender, uint8 skin, uint8 face, uint8 hairStyle, uint8 hairColor, uint8 facialHair, uint8 outfitId,
         WorldPacket& data) : Name(name), Race(race), Class(cclass), Gender(gender), Skin(skin), Face(face), HairStyle(hairStyle), HairColor(hairColor), FacialHair(facialHair),
         OutfitId(outfitId), Data(data), CharCount(0)
         {}
+        ~CharacterCreateInfo() {};
 
         /// User specified variables
         std::string Name;
@@ -176,14 +178,15 @@ class CharacterCreateInfo
 
         /// Server side data
         uint8 CharCount;
-
-    private:
-        virtual ~CharacterCreateInfo(){};
 };
 
 /// Player session in the World
 class WorldSession
 {
+    // EJ robot
+public:
+    bool isRobot;
+
     public:
         WorldSession(uint32 id, WorldSocket* sock, AccountTypes sec, uint8 expansion, time_t mute_time, LocaleConstant locale, uint32 recruiter, bool isARecruiter, bool skipQueue, uint32 TotalTime);
         ~WorldSession();

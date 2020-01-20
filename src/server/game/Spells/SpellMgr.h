@@ -683,6 +683,9 @@ class SpellMgr
         SpellInfo const* GetSpellInfo(uint32 spellId) const { return spellId < GetSpellInfoStoreSize() ?  mSpellInfoMap[spellId] : NULL; }
         uint32 GetSpellInfoStoreSize() const { return mSpellInfoMap.size(); }
 
+        // EJ robot spell info map
+        std::vector<SpellInfo*> GetSpellInfoVector() { return mSpellInfoMap; }
+
         // Talent Additional Set
         bool IsAdditionalTalentSpell(uint32 spellId) const;
 

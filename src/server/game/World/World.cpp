@@ -78,9 +78,15 @@
 #include "ServerMotd.h"
 #include "GameGraveyard.h"
 #include <VMapManager2.h>
+
 #ifdef ELUNA
 #include "LuaEngine.h"
 #endif
+
+// EJ robot
+#include "RobotManager.h"
+// EJ marketer
+#include "MarketerManager.h"
 
 ACE_Atomic_Op<ACE_Thread_Mutex, bool> World::m_stopEvent = false;
 uint8 World::m_ExitCode = SHUTDOWN_EXIT_CODE;
@@ -900,7 +906,7 @@ void World::LoadConfigSettings(bool reload)
 
     m_int_configs[CONFIG_MAX_RECRUIT_A_FRIEND_BONUS_PLAYER_LEVEL_DIFFERENCE] = sConfigMgr->GetIntDefault("RecruitAFriend.MaxDifference", 4);
     m_bool_configs[CONFIG_ALL_TAXI_PATHS] = sConfigMgr->GetBoolDefault("AllFlightPaths", false);
-    m_bool_configs[CONFIG_INSTANT_TAXI] = sConfigMgr->GetBoolDefault("InstantFlightPaths", false);
+    m_int_configs[CONFIG_INSTANT_TAXI] = sConfigMgr->GetIntDefault("InstantFlightPaths", 0);
 
     m_bool_configs[CONFIG_INSTANCE_IGNORE_LEVEL] = sConfigMgr->GetBoolDefault("Instance.IgnoreLevel", false);
     m_bool_configs[CONFIG_INSTANCE_IGNORE_RAID]  = sConfigMgr->GetBoolDefault("Instance.IgnoreRaid", false);
@@ -1105,6 +1111,7 @@ void World::LoadConfigSettings(bool reload)
     m_bool_configs[CONFIG_BATTLEGROUND_STORE_STATISTICS_ENABLE]      = sConfigMgr->GetBoolDefault("Battleground.StoreStatistics.Enable", false);
     m_bool_configs[CONFIG_BATTLEGROUND_TRACK_DESERTERS]              = sConfigMgr->GetBoolDefault("Battleground.TrackDeserters.Enable", false);
     m_int_configs[CONFIG_BATTLEGROUND_PREMATURE_FINISH_TIMER]        = sConfigMgr->GetIntDefault ("Battleground.PrematureFinishTimer", 5 * MINUTE * IN_MILLISECONDS);
+    m_int_configs[CONFIG_BATTLEGROUND_INVITATION_TYPE]               = sConfigMgr->GetIntDefault("Battleground.InvitationType", 0);
     m_int_configs[CONFIG_BATTLEGROUND_PREMADE_GROUP_WAIT_FOR_MATCH]  = sConfigMgr->GetIntDefault ("Battleground.PremadeGroupWaitForMatch", 30 * MINUTE * IN_MILLISECONDS);
     m_bool_configs[CONFIG_BG_XP_FOR_KILL]                            = sConfigMgr->GetBoolDefault("Battleground.GiveXPForKills", false);
     m_int_configs[CONFIG_ARENA_MAX_RATING_DIFFERENCE]                = sConfigMgr->GetIntDefault ("Arena.MaxRatingDifference", 150);
@@ -1320,6 +1327,9 @@ void World::LoadConfigSettings(bool reload)
 
     // Player can join LFG anywhere
     m_bool_configs[CONFIG_LFG_LOCATION_ALL] = sConfigMgr->GetBoolDefault("LFG.Location.All", false);
+
+    // Prevent players AFK from being logged out
+    m_int_configs[CONFIG_AFK_PREVENT_LOGOUT] = sConfigMgr->GetIntDefault("PreventAFKLogout", 0);
 
     // call ScriptMgr if we're reloading the configuration
     sScriptMgr->OnAfterConfigLoad(reload);
@@ -1959,6 +1969,12 @@ void World::SetInitialWorldSettings()
     sLog->outError("WORLD: World initialized in %u minutes %u seconds", (startupDuration / 60000), ((startupDuration % 60000) / 1000));
     sLog->outString();
 
+    // EJ marketer
+    sMarketerConfig->StartMarketerSystem();
+
+    // EJ robot
+    sRobotConfig->StartRobotSystem();
+
     // possibly enable db logging; avoid massive startup spam by doing it here.
     if (sConfigMgr->GetBoolDefault("EnableLogDB", false))
     {
@@ -2239,6 +2255,13 @@ void World::Update(uint32 diff)
 
     sScriptMgr->OnWorldUpdate(diff);
 
+    // EJ marketer
+    sMarketerManager->UpdateSeller(diff);
+    sMarketerManager->UpdateBuyer(diff);
+
+    // EJ robot
+    sRobotManager->UpdateRobots(diff);
+
     SavingSystemMgr::Update(diff);
 }
 
@@ -2480,6 +2503,9 @@ void World::ShutdownServ(uint32 time, uint32 options, uint8 exitcode)
     if (IsStopped())
         return;
 
+    // EJ robot
+    sRobotManager->LogoutRobots();
+
     m_ShutdownMask = options;
     m_ExitCode = exitcode;
 
@@ -2569,9 +2595,32 @@ void World::UpdateSessions(uint32 diff)
     while (addSessQueue.next(sess))
         AddSession_ (sess);
 
+    // EJ update active player levels
+    sRobotManager->activePlayerLevelSet.clear();
+
+    // EJ Debug
+    sRobotManager->activePlayerLevelSet.insert(33);
+
     ///- Then send an update signal to remaining ones
     for (SessionMap::iterator itr = m_sessions.begin(), next; itr != m_sessions.end(); itr = next)
     {
+        // EJ update active player levels
+        if (!itr->second->isRobot)
+        {
+            Player* targetPlayer = itr->second->GetPlayer();
+            if (targetPlayer)
+            {
+                uint32 targetLevel = targetPlayer->getLevel();
+                if (targetLevel > 7)
+                {
+                    if (sRobotManager->activePlayerLevelSet.find(targetLevel) == sRobotManager->activePlayerLevelSet.end())
+                    {
+                        sRobotManager->activePlayerLevelSet.insert(targetLevel);
+                    }
+                }
+            }
+        }
+
         next = itr;
         ++next;
 

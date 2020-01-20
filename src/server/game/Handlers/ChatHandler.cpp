@@ -12,7 +12,6 @@
 #include "WorldPacket.h"
 #include "WorldSession.h"
 #include "DatabaseEnv.h"
-
 #include "CellImpl.h"
 #include "Chat.h"
 #include "ChannelMgr.h"
@@ -28,9 +27,13 @@
 #include "Util.h"
 #include "ScriptMgr.h"
 #include "AccountMgr.h"
+
 #ifdef ELUNA
 #include "LuaEngine.h"
 #endif
+
+ // EJ robot
+#include "RobotAI.h"
 
 void WorldSession::HandleMessagechatOpcode(WorldPacket & recvData)
 {
@@ -106,6 +109,7 @@ void WorldSession::HandleMessagechatOpcode(WorldPacket & recvData)
         recvData.rfinish();
         return;
     }
+    
     if (langDesc->skill_id != 0 && !sender->HasSkill(langDesc->skill_id))
     {
         // also check SPELL_AURA_COMPREHEND_LANGUAGE (client offers option to speak in that language)
@@ -333,6 +337,7 @@ void WorldSession::HandleMessagechatOpcode(WorldPacket & recvData)
         }
     }
 
+    sScriptMgr->OnBeforeSendChatMessage(_player, type, lang, msg);
 
     switch (type)
     {
@@ -356,6 +361,12 @@ void WorldSession::HandleMessagechatOpcode(WorldPacket & recvData)
                 sender->TextEmote(msg);
             else if (type == CHAT_MSG_YELL)
                 sender->Yell(msg, lang);
+
+            // EJ robot
+            if (!GetPlayer()->GetSession()->isRobot)
+            {
+                sRobotManager->HandlePlayerSay(GetPlayer(), msg);
+            }
         } break;
         case CHAT_MSG_WHISPER:
         {
@@ -399,6 +410,15 @@ void WorldSession::HandleMessagechatOpcode(WorldPacket & recvData)
                 sender->AddWhisperWhiteList(receiver->GetGUID());
 
             GetPlayer()->Whisper(msg, lang, receiver->GetGUID());
+
+            // EJ robot
+            if (receiver->GetSession()->isRobot)
+            {
+                if (receiver->rai)
+                {
+                    receiver->rai->HandleChatCommand(msg, GetPlayer());
+                }
+            }
         } break;
         case CHAT_MSG_PARTY:
         case CHAT_MSG_PARTY_LEADER:
@@ -423,6 +443,19 @@ void WorldSession::HandleMessagechatOpcode(WorldPacket & recvData)
             WorldPacket data;
             ChatHandler::BuildChatPacket(data, ChatMsg(type), Language(lang), sender, NULL, msg);
             group->BroadcastPacket(&data, false, group->GetMemberGroup(GetPlayer()->GetGUID()));
+
+            // EJ robot
+            for (GroupReference* groupRef = group->GetFirstMember(); groupRef != nullptr; groupRef = groupRef->next())
+            {
+                Player* member = groupRef->GetSource();
+                if (member->GetSession()->isRobot)
+                {
+                    if (member->rai)
+                    {
+                        member->rai->HandleChatCommand(msg, GetPlayer());
+                    }
+                }
+            }
         } break;
         case CHAT_MSG_GUILD:
         {
@@ -495,6 +528,19 @@ void WorldSession::HandleMessagechatOpcode(WorldPacket & recvData)
             WorldPacket data;
             ChatHandler::BuildChatPacket(data, CHAT_MSG_RAID_LEADER, Language(lang), sender, NULL, msg);
             group->BroadcastPacket(&data, false);
+
+            // EJ robot
+            for (GroupReference* groupRef = group->GetFirstMember(); groupRef != nullptr; groupRef = groupRef->next())
+            {
+                Player* member = groupRef->GetSource();
+                if (member->GetSession()->isRobot)
+                {
+                    if (member->rai)
+                    {
+                        member->rai->HandleChatCommand(msg, GetPlayer());
+                    }
+                }
+            }
         } break;
         case CHAT_MSG_RAID_WARNING:
         {
